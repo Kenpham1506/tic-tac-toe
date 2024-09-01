@@ -140,14 +140,23 @@
         }
 
         function setupConnection(isInitiator) {
-            peer = new SimplePeer({ initiator: isInitiator });
+            peer = new SimplePeer({
+                initiator: isInitiator,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' }, // Google's public STUN server
+                    ]
+                }
+            });
 
             peer.on('signal', data => {
+                console.log('SIGNAL', data);
                 signalCodeArea.value = JSON.stringify(data);
                 statusDisplay.textContent = 'Signal created. Waiting for opponent...';
             });
 
             peer.on('connect', () => {
+                console.log('CONNECTED');
                 statusDisplay.textContent = 'Connected!';
                 // Hide signaling sections once connected
                 document.getElementById('signal-display').style.display = 'none';
@@ -157,6 +166,7 @@
             });
 
             peer.on('data', data => {
+                console.log('DATA', data);
                 const move = JSON.parse(data);
                 makeMove(move.index, move.symbol);
                 isMyTurn = true;
@@ -164,7 +174,13 @@
             });
 
             peer.on('error', err => {
-                statusDisplay.textContent = 'Connection error: ' + err;
+                console.error('ERROR', err);
+                statusDisplay.textContent = 'Connection error: ' + err.message;
+            });
+
+            peer.on('close', () => {
+                console.log('CONNECTION CLOSED');
+                statusDisplay.textContent = 'Connection closed.';
             });
         }
 
