@@ -3,52 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        #board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 10px;
-        }
-        .cell {
-            width: 100px;
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            background-color: #fff;
-            cursor: pointer;
-            border: 1px solid #ccc;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
+    <title>Tic Tac Toe - Peer to Peer</title>
+    <script src="https://unpkg.com/simple-peer@9/simplepeer.min.js"></script>
 </head>
 <body>
-    <div id="status">Waiting for peer...</div>
-    <div id="board" class="hidden">
-        <div class="cell" data-index="0"></div>
-        <div class="cell" data-index="1"></div>
-        <div class="cell" data-index="2"></div>
-        <div class="cell" data-index="3"></div>
-        <div class="cell" data-index="4"></div>
-        <div class="cell" data-index="5"></div>
-        <div class="cell" data-index="6"></div>
-        <div class="cell" data-index="7"></div>
-        <div class="cell" data-index="8"></div>
+    <h1>Tic Tac Toe - Peer to Peer</h1>
+
+    <!-- Display for Signaling Code -->
+    <div id="signal-display" style="margin-bottom: 20px;">
+        <h2>Your Signaling Code:</h2>
+        <textarea id="signal-code" rows="10" cols="50" readonly></textarea>
+        <button onclick="copySignalCode()">Copy to Clipboard</button>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9/simplepeer.min.js"></script>
-    <script src="app.js"></script>
+
+    <!-- Input for the Opponent's Signaling Code -->
+    <div id="opponent-signal">
+        <h2>Enter Opponent's Signaling Code:</h2>
+        <textarea id="opponent-code" rows="10" cols="50"></textarea>
+        <button onclick="connect()">Connect</button>
+    </div>
+
+    <!-- Tic Tac Toe Board (Placeholder) -->
+    <div id="game-board">
+        <!-- Game Board will be implemented here -->
+    </div>
+
+    <script>
+        let peer;
+        const signalCodeArea = document.getElementById('signal-code');
+
+        function setupConnection(isInitiator) {
+            peer = new SimplePeer({ initiator: isInitiator });
+
+            peer.on('signal', data => {
+                signalCodeArea.value = JSON.stringify(data);
+            });
+
+            peer.on('connect', () => {
+                alert('Connection established!');
+                // Hide signaling sections once connected
+                document.getElementById('signal-display').style.display = 'none';
+                document.getElementById('opponent-signal').style.display = 'none';
+                // Initialize the game board or start the game
+            });
+
+            peer.on('data', data => {
+                console.log('Received:', data.toString());
+                // Handle incoming data (e.g., game moves)
+            });
+        }
+
+        function copySignalCode() {
+            signalCodeArea.select();
+            document.execCommand('copy');
+            alert('Signaling code copied to clipboard!');
+        }
+
+        function connect() {
+            const opponentCode = document.getElementById('opponent-code').value;
+            if (opponentCode) {
+                peer.signal(JSON.parse(opponentCode));
+            } else {
+                alert('Please enter the opponent\'s signaling code.');
+            }
+        }
+
+        // Start as the first player (initiator)
+        setupConnection(true);
+
+        // Later, you can implement a button or prompt for the second player to call setupConnection(false).
+    </script>
 </body>
 </html>
