@@ -34,6 +34,14 @@
         #signal-display, #opponent-signal {
             margin-bottom: 20px;
         }
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        #turn-display {
+            margin-top: 10px;
+            font-size: 18px;
+        }
     </style>
     <script src="https://unpkg.com/simple-peer@9/simplepeer.min.js"></script>
 </head>
@@ -54,6 +62,12 @@
         <button onclick="connect()">Connect</button>
     </div>
 
+    <!-- Connection Status -->
+    <div id="status">Awaiting connection...</div>
+
+    <!-- Turn Display -->
+    <div id="turn-display"></div>
+
     <!-- Tic Tac Toe Board -->
     <div id="game-board">
         <div class="cell" data-index="0"></div>
@@ -72,6 +86,8 @@
         let isMyTurn = false; // Track if it's the player's turn
         const gameBoard = document.getElementById('game-board');
         const signalCodeArea = document.getElementById('signal-code');
+        const statusDisplay = document.getElementById('status');
+        const turnDisplay = document.getElementById('turn-display');
         const cells = document.querySelectorAll('.cell');
         let board = ['', '', '', '', '', '', '', '', '']; // Initial game state
         const playerSymbol = 'X'; // Player 1's symbol
@@ -84,6 +100,7 @@
                     makeMove(index, playerSymbol);
                     peer.send(JSON.stringify({ index: index, symbol: playerSymbol }));
                     isMyTurn = false;
+                    updateTurnDisplay();
                 }
             });
         });
@@ -115,6 +132,11 @@
             board = ['', '', '', '', '', '', '', '', ''];
             cells.forEach(cell => cell.textContent = '');
             isMyTurn = playerSymbol === 'X';
+            updateTurnDisplay();
+        }
+
+        function updateTurnDisplay() {
+            turnDisplay.textContent = isMyTurn ? 'Your turn' : 'Opponent\'s turn';
         }
 
         function setupConnection(isInitiator) {
@@ -122,20 +144,27 @@
 
             peer.on('signal', data => {
                 signalCodeArea.value = JSON.stringify(data);
+                statusDisplay.textContent = 'Signal created. Waiting for opponent...';
             });
 
             peer.on('connect', () => {
-                alert('Connection established!');
+                statusDisplay.textContent = 'Connected!';
                 // Hide signaling sections once connected
                 document.getElementById('signal-display').style.display = 'none';
                 document.getElementById('opponent-signal').style.display = 'none';
                 isMyTurn = playerSymbol === 'X'; // Player X starts first
+                updateTurnDisplay();
             });
 
             peer.on('data', data => {
                 const move = JSON.parse(data);
                 makeMove(move.index, move.symbol);
                 isMyTurn = true;
+                updateTurnDisplay();
+            });
+
+            peer.on('error', err => {
+                statusDisplay.textContent = 'Connection error: ' + err;
             });
         }
 
@@ -148,7 +177,12 @@
         function connect() {
             const opponentCode = document.getElementById('opponent-code').value;
             if (opponentCode) {
-                peer.signal(JSON.parse(opponentCode));
+                try {
+                    peer.signal(JSON.parse(opponentCode));
+                    statusDisplay.textContent = 'Connecting...';
+                } catch (err) {
+                    statusDisplay.textContent = 'Invalid signaling code!';
+                }
             } else {
                 alert('Please enter the opponent\'s signaling code.');
             }
