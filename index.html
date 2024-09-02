@@ -7,69 +7,54 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
         }
-        #game-board {
+        #gameBoard {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             grid-template-rows: repeat(3, 100px);
             gap: 5px;
-            justify-content: center;
-            margin: 20px auto;
+            margin-top: 20px;
         }
         .cell {
             width: 100px;
             height: 100px;
-            background-color: #f0f0f0;
-            font-size: 48px;
+            background-color: #fff;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            font-size: 2rem;
             cursor: pointer;
-            border: 1px solid #ccc;
+            border: 2px solid #333;
         }
-        .cell:hover {
-            background-color: #ddd;
-        }
-        #signal-display, #opponent-signal {
-            margin-bottom: 20px;
-        }
-        #status {
+        #connectionStatus {
             margin-top: 20px;
-            font-size: 20px;
+            font-size: 1.2rem;
         }
-        #turn-display {
-            margin-top: 10px;
-            font-size: 18px;
+        #signalCode {
+            margin-top: 20px;
+            word-wrap: break-word;
+        }
+        #signalingInput {
+            margin-top: 20px;
         }
     </style>
-    <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
 </head>
 <body>
     <h1>Tic Tac Toe - Peer to Peer</h1>
-
-    <!-- Display for Signaling Code -->
-    <div id="signal-display">
-        <h2>Your Signaling Code:</h2>
-        <textarea id="signal-code" rows="10" cols="50" readonly></textarea>
-        <button onclick="copySignalCode()">Copy to Clipboard</button>
+    <div id="connectionStatus">Connecting...</div>
+    <div id="signalCode"></div>
+    <div id="signalingInput">
+        <input type="text" id="remoteSignal" placeholder="Enter Signaling Code">
+        <button id="connectButton">Connect</button>
     </div>
-
-    <!-- Input for the Opponent's Signaling Code -->
-    <div id="opponent-signal">
-        <h2>Enter Opponent's Signaling Code:</h2>
-        <textarea id="opponent-code" rows="10" cols="50"></textarea>
-        <button onclick="connect()">Connect</button>
-    </div>
-
-    <!-- Connection Status -->
-    <div id="status">Awaiting connection...</div>
-
-    <!-- Turn Display -->
-    <div id="turn-display"></div>
-
-    <!-- Tic Tac Toe Board -->
-    <div id="game-board">
+    <div id="gameBoard">
         <div class="cell" data-index="0"></div>
         <div class="cell" data-index="1"></div>
         <div class="cell" data-index="2"></div>
@@ -81,133 +66,7 @@
         <div class="cell" data-index="8"></div>
     </div>
 
-    <script>
-        let peer;
-        let isMyTurn = false; // Track if it's the player's turn
-        const gameBoard = document.getElementById('game-board');
-        const signalCodeArea = document.getElementById('signal-code');
-        const statusDisplay = document.getElementById('status');
-        const turnDisplay = document.getElementById('turn-display');
-        const cells = document.querySelectorAll('.cell');
-        let board = ['', '', '', '', '', '', '', '', '']; // Initial game state
-        const playerSymbol = 'X'; // Player 1's symbol
-        const opponentSymbol = 'O'; // Player 2's symbol
-
-        cells.forEach(cell => {
-            cell.addEventListener('click', () => {
-                if (isMyTurn && cell.textContent === '') {
-                    const index = cell.getAttribute('data-index');
-                    makeMove(index, playerSymbol);
-                    peer.send(JSON.stringify({ index: index, symbol: playerSymbol }));
-                    isMyTurn = false;
-                    updateTurnDisplay();
-                }
-            });
-        });
-
-        function makeMove(index, symbol) {
-            board[index] = symbol;
-            cells[index].textContent = symbol;
-            if (checkWin(symbol)) {
-                alert(symbol + ' wins!');
-                resetGame();
-            } else if (board.every(cell => cell !== '')) {
-                alert('It\'s a draw!');
-                resetGame();
-            }
-        }
-
-        function checkWin(symbol) {
-            const winningCombinations = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-                [0, 4, 8], [2, 4, 6]             // Diagonals
-            ];
-            return winningCombinations.some(combination =>
-                combination.every(index => board[index] === symbol)
-            );
-        }
-
-        function resetGame() {
-            board = ['', '', '', '', '', '', '', '', ''];
-            cells.forEach(cell => cell.textContent = '');
-            isMyTurn = playerSymbol === 'X';
-            updateTurnDisplay();
-        }
-
-        function updateTurnDisplay() {
-            turnDisplay.textContent = isMyTurn ? 'Your turn' : 'Opponent\'s turn';
-        }
-
-        function setupConnection(isInitiator) {
-            peer = new SimplePeer({
-                initiator: isInitiator,
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' }, // Google's public STUN server
-                    ]
-                }
-            });
-
-            peer.on('signal', data => {
-                console.log('SIGNAL', data);
-                signalCodeArea.value = JSON.stringify(data);
-                statusDisplay.textContent = 'Signal created. Waiting for opponent...';
-            });
-
-            peer.on('connect', () => {
-                console.log('CONNECTED');
-                statusDisplay.textContent = 'Connected!';
-                // Hide signaling sections once connected
-                document.getElementById('signal-display').style.display = 'none';
-                document.getElementById('opponent-signal').style.display = 'none';
-                isMyTurn = playerSymbol === 'X'; // Player X starts first
-                updateTurnDisplay();
-            });
-
-            peer.on('data', data => {
-                console.log('DATA', data);
-                const move = JSON.parse(data);
-                makeMove(move.index, move.symbol);
-                isMyTurn = true;
-                updateTurnDisplay();
-            });
-
-            peer.on('error', err => {
-                console.error('ERROR', err);
-                statusDisplay.textContent = 'Connection error: ' + err.message;
-            });
-
-            peer.on('close', () => {
-                console.log('CONNECTION CLOSED');
-                statusDisplay.textContent = 'Connection closed.';
-            });
-        }
-
-        function copySignalCode() {
-            signalCodeArea.select();
-            document.execCommand('copy');
-            alert('Signaling code copied to clipboard!');
-        }
-
-        function connect() {
-            const opponentCode = document.getElementById('opponent-code').value;
-            if (opponentCode) {
-                try {
-                    peer.signal(JSON.parse(opponentCode));
-                    statusDisplay.textContent = 'Connecting...';
-                } catch (err) {
-                    statusDisplay.textContent = 'Invalid signaling code!';
-                }
-            } else {
-                alert('Please enter the opponent\'s signaling code.');
-            }
-        }
-
-        // Start as the first player (initiator)
-        setupConnection(true);
-
-        // You can implement a button for the second player to call setupConnection(false)
-    </script>
+    <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
