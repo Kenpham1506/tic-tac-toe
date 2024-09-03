@@ -3,57 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe - Peer to Peer</title>
+    <title>Peer-to-Peer Tic Tac Toe</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
         #gameBoard {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             grid-template-rows: repeat(3, 100px);
             gap: 5px;
-            margin-top: 20px;
+            margin: 20px auto;
         }
+
         .cell {
             width: 100px;
             height: 100px;
-            background-color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
+            background-color: #f0f0f0;
+            font-size: 24px;
+            text-align: center;
+            line-height: 100px;
             cursor: pointer;
-            border: 2px solid #333;
+            user-select: none;
         }
-        #connectionStatus {
-            margin-top: 20px;
-            font-size: 1.2rem;
-        }
-        #signalCode {
-            margin-top: 20px;
-            word-wrap: break-word;
-        }
-        #signalingInput {
-            margin-top: 20px;
+
+        #signalCode, #connectionStatus {
+            margin: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <h1>Tic Tac Toe - Peer to Peer</h1>
-    <div id="connectionStatus">Connecting...</div>
-    <div id="signalCode"></div>
-    <div id="signalingInput">
-        <input type="text" id="remoteSignal" placeholder="Enter Signaling Code">
-        <button id="connectButton">Connect</button>
-    </div>
+    <div id="connectionStatus">Not Connected</div>
+    <div id="signalCode">Signal Code: </div>
+    <input id="remoteSignal" placeholder="Paste Remote Signal Here">
+    <button id="connectButton">Connect</button>
+
     <div id="gameBoard">
         <div class="cell" data-index="0"></div>
         <div class="cell" data-index="1"></div>
@@ -66,7 +49,7 @@
         <div class="cell" data-index="8"></div>
     </div>
 
-    <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
-    <script src="app.js"></script>
+    <script src="https://unpkg.com/simple-peer@9/simplepeer.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
