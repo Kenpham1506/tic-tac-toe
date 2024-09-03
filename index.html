@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peer-to-Peer Tic Tac Toe</title>
+    <title>Tic Tac Toe - Peer-to-Peer</title>
     <style>
         #gameBoard {
             display: grid;
@@ -11,32 +11,30 @@
             grid-template-rows: repeat(3, 100px);
             gap: 5px;
             margin: 20px auto;
+            text-align: center;
+            font-size: 2em;
         }
-
         .cell {
             width: 100px;
             height: 100px;
-            background-color: #f0f0f0;
-            font-size: 24px;
-            text-align: center;
-            line-height: 100px;
+            border: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            user-select: none;
         }
-
         #signalCode, #connectionStatus {
-            margin: 10px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
+            margin: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div id="connectionStatus">Not Connected</div>
-    <div id="signalCode">Signal Code: </div>
-    <input id="remoteSignal" placeholder="Paste Remote Signal Here">
+    <h1>Tic Tac Toe - Peer-to-Peer</h1>
+    <div id="connectionStatus">Not connected</div>
+    <div id="signalCode"></div>
+    <input type="text" id="remoteSignal" placeholder="Enter remote signal code">
     <button id="connectButton">Connect</button>
-
     <div id="gameBoard">
         <div class="cell" data-index="0"></div>
         <div class="cell" data-index="1"></div>
@@ -49,7 +47,7 @@
         <div class="cell" data-index="8"></div>
     </div>
 
-    <script src="https://unpkg.com/simple-peer@9/simplepeer.min.js"></script>
+    <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
