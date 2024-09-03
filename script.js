@@ -7,20 +7,19 @@ const connectButton = document.getElementById('connectButton');
 
 let peer;
 let currentPlayer = 'X';
-let isMyTurn = false;
+let isMyTurn = false; // Indicates if it's the player's turn
 
-// Initialize the peer connection
 function initializePeer(initiator) {
     peer = new SimplePeer({ initiator: initiator, trickle: false });
 
     peer.on('signal', data => {
         signalCodeElement.innerText = `Signal Code: ${JSON.stringify(data)}`;
-        console.log('Signal:', data); // Log the signal data
+        console.log('Signal:', data);
     });
 
     peer.on('connect', () => {
         connectionStatus.innerText = 'Connected!';
-        console.log('Connected to peer'); // Log when connected
+        console.log('Connected to peer');
 
         if (initiator) {
             isMyTurn = true;  // Initiator starts the game
@@ -28,7 +27,6 @@ function initializePeer(initiator) {
     });
 
     peer.on('data', data => {
-        console.log('Data received:', data); // Log received data
         const { index, player } = JSON.parse(data);
         cells[index].innerText = player;
         cells[index].style.pointerEvents = 'none';
@@ -41,12 +39,11 @@ function initializePeer(initiator) {
             resetGame();
         } else {
             switchPlayer();
-            isMyTurn = true;  // Only set turn to true after receiving the opponent's move
+            isMyTurn = true;  // Switch turns after receiving opponent's move
         }
     });
 }
 
-// Handle cell click
 cells.forEach(cell => {
     cell.addEventListener('click', () => {
         if (cell.innerText === '' && isMyTurn) {
@@ -54,6 +51,7 @@ cells.forEach(cell => {
             cell.style.pointerEvents = 'none';
             const index = cell.dataset.index;
             peer.send(JSON.stringify({ index, player: currentPlayer }));
+
             if (checkWinner(currentPlayer)) {
                 alert(`${currentPlayer} wins!`);
                 resetGame();
@@ -62,27 +60,23 @@ cells.forEach(cell => {
                 resetGame();
             } else {
                 switchPlayer();
-                isMyTurn = false; // Disable turn after making a move
+                isMyTurn = false;  // Disable turn after making a move
             }
         }
     });
 });
 
-// Connect to a remote peer
 connectButton.addEventListener('click', () => {
     const remoteSignal = JSON.parse(remoteSignalInput.value);
     peer.signal(remoteSignal);
 });
 
-// Start the peer connection
 initializePeer(true);
 
-// Switch player
 function switchPlayer() {
     currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
 }
 
-// Check for a winner
 function checkWinner(player) {
     const winningCombinations = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
@@ -95,12 +89,10 @@ function checkWinner(player) {
     });
 }
 
-// Check if the board is full
 function isBoardFull() {
     return [...cells].every(cell => cell.innerText !== '');
 }
 
-// Reset the game
 function resetGame() {
     cells.forEach(cell => {
         cell.innerText = '';
@@ -109,6 +101,6 @@ function resetGame() {
     currentPlayer = 'X';
     isMyTurn = false;
     if (peer.initiator) {
-        isMyTurn = true;  // Re-enable the turn for the initiator on reset
+        isMyTurn = true;  // Initiator gets the first move after reset
     }
 }
