@@ -7,7 +7,7 @@ const connectButton = document.getElementById('connectButton');
 
 let peer;
 let currentPlayer = 'X';
-let isMyTurn = true;
+let isMyTurn = false;
 
 // Initialize the peer connection
 function initializePeer(initiator) {
@@ -21,10 +21,9 @@ function initializePeer(initiator) {
     peer.on('connect', () => {
         connectionStatus.innerText = 'Connected!';
         console.log('Connected to peer'); // Log when connected
+
         if (initiator) {
             isMyTurn = true;  // Initiator starts the game
-        } else {
-            isMyTurn = false; // Non-initiator waits for their turn
         }
     });
 
@@ -33,6 +32,7 @@ function initializePeer(initiator) {
         const { index, player } = JSON.parse(data);
         cells[index].innerText = player;
         cells[index].style.pointerEvents = 'none';
+
         if (checkWinner(player)) {
             alert(`${player} wins!`);
             resetGame();
@@ -41,7 +41,7 @@ function initializePeer(initiator) {
             resetGame();
         } else {
             switchPlayer();
-            isMyTurn = true;
+            isMyTurn = true;  // Only set turn to true after receiving the opponent's move
         }
     });
 }
@@ -62,7 +62,7 @@ cells.forEach(cell => {
                 resetGame();
             } else {
                 switchPlayer();
-                isMyTurn = false;
+                isMyTurn = false; // Disable turn after making a move
             }
         }
     });
@@ -107,5 +107,8 @@ function resetGame() {
         cell.style.pointerEvents = 'auto';
     });
     currentPlayer = 'X';
-    isMyTurn = true;
+    isMyTurn = false;
+    if (peer.initiator) {
+        isMyTurn = true;  // Re-enable the turn for the initiator on reset
+    }
 }
