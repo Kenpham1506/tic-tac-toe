@@ -47,9 +47,10 @@ function initializePeer(initiator) {
 cells.forEach(cell => {
     cell.addEventListener('click', () => {
         if (cell.innerText === '' && isMyTurn) {
+            const index = cell.dataset.index;
             cell.innerText = currentPlayer;
             cell.style.pointerEvents = 'none';
-            const index = cell.dataset.index;
+
             peer.send(JSON.stringify({ index, player: currentPlayer }));
 
             if (checkWinner(currentPlayer)) {
@@ -99,8 +100,5 @@ function resetGame() {
         cell.style.pointerEvents = 'auto';
     });
     currentPlayer = 'X';
-    isMyTurn = false;
-    if (peer.initiator) {
-        isMyTurn = true;  // Initiator gets the first move after reset
-    }
+    isMyTurn = peer.initiator;  // Initiator gets the first move after reset
 }
