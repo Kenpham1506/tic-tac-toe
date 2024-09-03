@@ -15,10 +15,12 @@ function initializePeer(initiator) {
 
     peer.on('signal', data => {
         signalCodeElement.innerText = `Signal Code: ${JSON.stringify(data)}`;
+        console.log('Signal:', data); // Log the signal data
     });
 
     peer.on('connect', () => {
         connectionStatus.innerText = 'Connected!';
+        console.log('Connected to peer'); // Log when connected
         if (initiator) {
             isMyTurn = true;  // Initiator starts the game
         } else {
@@ -27,6 +29,7 @@ function initializePeer(initiator) {
     });
 
     peer.on('data', data => {
+        console.log('Data received:', data); // Log received data
         const { index, player } = JSON.parse(data);
         cells[index].innerText = player;
         cells[index].style.pointerEvents = 'none';
