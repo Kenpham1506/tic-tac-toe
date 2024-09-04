@@ -7,7 +7,7 @@ const connectButton = document.getElementById('connectButton');
 
 let peer;
 let currentPlayer = 'X';
-let isMyTurn = false; // Indicates if it's the player's turn
+let isMyTurn = false;  // Indicates if it's the player's turn
 
 function initializePeer(initiator) {
     peer = new SimplePeer({ initiator: initiator, trickle: false });
@@ -28,29 +28,31 @@ function initializePeer(initiator) {
 
     peer.on('data', data => {
         const { index, player } = JSON.parse(data);
-        cells[index].innerText = player;
-        cells[index].style.pointerEvents = 'none';
-
-        if (checkWinner(player)) {
-            alert(`${player} wins!`);
-            resetGame();
-        } else if (isBoardFull()) {
-            alert("It's a draw!");
-            resetGame();
-        } else {
-            switchPlayer();
-            isMyTurn = true;  // Switch turns after receiving opponent's move
-        }
+        updateCell(index, player);
+        switchPlayer();
+        isMyTurn = true;  // Switch turns after receiving opponent's move
     });
+
+    peer.on('error', err => {
+        console.error('Error:', err);
+    });
+
+    peer.on('close', () => {
+        connectionStatus.innerText = 'Connection closed';
+    });
+}
+
+function updateCell(index, player) {
+    const cell = cells[index];
+    cell.innerText = player;
+    cell.style.pointerEvents = 'none';
 }
 
 cells.forEach(cell => {
     cell.addEventListener('click', () => {
         if (cell.innerText === '' && isMyTurn) {
             const index = cell.dataset.index;
-            cell.innerText = currentPlayer;
-            cell.style.pointerEvents = 'none';
-
+            updateCell(index, currentPlayer);
             peer.send(JSON.stringify({ index, player: currentPlayer }));
 
             if (checkWinner(currentPlayer)) {
