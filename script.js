@@ -28,6 +28,7 @@ function initializePeer(initiator) {
 
     peer.on('data', data => {
         const { index, player } = JSON.parse(data);
+        console.log('Received move:', { index, player });
         updateCell(index, player);
         switchPlayer();
         isMyTurn = true;  // Switch turns after receiving opponent's move
@@ -46,6 +47,7 @@ function updateCell(index, player) {
     const cell = cells[index];
     cell.innerText = player;
     cell.style.pointerEvents = 'none';
+    console.log('Updated cell:', { index, player });
 }
 
 cells.forEach(cell => {
@@ -54,6 +56,7 @@ cells.forEach(cell => {
             const index = cell.dataset.index;
             updateCell(index, currentPlayer);
             peer.send(JSON.stringify({ index, player: currentPlayer }));
+            console.log('Sent move:', { index, player: currentPlayer });
 
             if (checkWinner(currentPlayer)) {
                 alert(`${currentPlayer} wins!`);
@@ -78,6 +81,7 @@ initializePeer(true);
 
 function switchPlayer() {
     currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    console.log('Switched player to:', currentPlayer);
 }
 
 function checkWinner(player) {
